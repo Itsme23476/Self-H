@@ -1,0 +1,29 @@
+
+name: Self-Healing Agent
+
+on:
+  repository_dispatch:
+    types: [app_error]
+
+permissions:
+  contents: write
+
+jobs:
+  heal:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Run Healer
+        env:
+          ERROR_LOG: ${{ github.event.client_payload.error_message }}
+          FILE_PATH: ${{ github.event.client_payload.file_path }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python self_healing_agent.py --error "$ERROR_LOG" --file "$FILE_PATH"
